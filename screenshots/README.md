@@ -23,4 +23,4 @@ The images in this folder are referenced inside:
 
 Example:
 ```md
-![RFM Distribution](Notebooks/screenshots/rfm_distribution.png)
+![RFM Distribution](screenshots/RFM.png)
