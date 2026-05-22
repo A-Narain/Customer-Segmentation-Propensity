@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Customer Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;
+  --surface:#13161e;
+  --surface2:#1a1e29;
+  --border:#ffffff0f;
+  --border2:#ffffff18;
+  --text:#e8eaf0;
+  --muted:#6b7080;
+  --faint:#3a3f50;
+  --blue:#4f8eff;
+  --blue-dim:#4f8eff22;
+  --green:#3ecf8e;
+  --green-dim:#3ecf8e1a;
+  --amber:#f5a623;
+  --amber-dim:#f5a6231a;
+  --red:#f45b69;
+  --red-dim:#f45b691a;
+  --purple:#a78bfa;
+  --purple-dim:#a78bfa1a;
+  --mono:'DM Mono',monospace;
+  --sans:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;line-height:1.6;min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{
+  width:220px;min-width:220px;background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:50;
+}
+.sidebar-logo{
+  padding:24px 20px 20px;border-bottom:1px solid var(--border);
+}
+.logo-mark{
+  font-family:var(--sans);font-size:15px;font-weight:700;
+  color:var(--text);letter-spacing:-0.3px;
+  display:flex;align-items:center;gap:8px;
+}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue)}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px}
+
+.nav-section{padding:20px 12px 8px;font-size:10px;color:var(--faint);letter-spacing:0.12em;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;margin:1px 8px;
+  border-radius:6px;cursor:pointer;
+  font-size:12px;color:var(--muted);
+  transition:all 0.15s;border:none;background:none;width:calc(100% - 16px);text-align:left;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--blue-dim);color:var(--blue)}
+.nav-icon{width:16px;height:16px;opacity:0.7}
+.nav-item.active .nav-icon{opacity:1}
+
+.sidebar-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+.api-status{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--muted);
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* TOPBAR */
+.topbar{
+  padding:16px 32px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--bg);position:sticky;top:0;z-index:40;
+}
+.page-title{font-family:var(--sans);font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.page-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge{
+  font-size:10px;padding:4px 10px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;
+}
+.badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid #4f8eff30}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid #3ecf8e30}
+.btn{
+  padding:8px 16px;border-radius:6px;font-size:12px;font-family:var(--mono);
+  cursor:pointer;border:1px solid var(--border2);background:var(--surface);
+  color:var(--text);transition:all 0.15s;
+}
+.btn:hover{background:var(--surface2);border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-primary:hover{background:#6fa3ff;border-color:#6fa3ff;color:#fff}
+
+/* CONTENT */
+.content{padding:28px 32px;flex:1}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:20px;position:relative;overflow:hidden;
+}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+}
+.kpi-card.blue::before{background:var(--blue)}
+.kpi-card.green::before{background:var(--green)}
+.kpi-card.amber::before{background:var(--amber)}
+.kpi-card.purple::before{background:var(--purple)}
+.kpi-label{font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.kpi-value{font-family:var(--sans);font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1}
+.kpi-delta{
+  font-size:11px;margin-top:8px;display:flex;align-items:center;gap:4px;
+}
+.delta-up{color:var(--green)} .delta-down{color:var(--red)}
+.kpi-sub{font-size:10px;color:var(--faint);margin-top:4px}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.panel-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.panel-title{font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:-0.2px}
+.panel-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.panel-actions{display:flex;gap:8px}
+
+/* SEGMENT BUBBLES */
+.segments-wrap{display:flex;flex-direction:column;gap:10px}
+.segment-row{display:flex;align-items:center;gap:12px}
+.seg-label{font-size:12px;min-width:120px;color:var(--text)}
+.seg-bar-bg{flex:1;height:6px;background:var(--surface2);border-radius:3px;position:relative}
+.seg-bar{height:6px;border-radius:3px;transition:width 1s cubic-bezier(0.16,1,0.3,1)}
+.seg-count{font-size:11px;color:var(--muted);min-width:50px;text-align:right}
+.seg-pct{font-size:11px;min-width:36px;text-align:right}
+
+/* SEGMENT TAGS */
+.seg-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.seg-tag{
+  padding:5px 12px;border-radius:20px;font-size:11px;
+  border:1px solid transparent;cursor:default;
+}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{
+  text-align:left;padding:8px 12px;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--border);font-weight:400;
+}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surface2)}
+.score-pill{
+  display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;
+}
+.score-high{background:var(--green-dim);color:var(--green)}
+.score-mid{background:var(--amber-dim);color:var(--amber)}
+.score-low{background:var(--red-dim);color:var(--red)}
+
+/* PROPENSITY METER */
+.propensity-list{display:flex;flex-direction:column;gap:14px}
+.prop-row{display:flex;align-items:center;gap:12px}
+.prop-id{font-size:11px;color:var(--muted);min-width:64px}
+.prop-bar-bg{flex:1;height:4px;background:var(--surface2);border-radius:2px}
+.prop-bar{height:4px;border-radius:2px}
+.prop-score{font-size:12px;min-width:40px;text-align:right}
+
+/* CLV FORECAST */
+.clv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.clv-cell{
+  background:var(--surface2);border-radius:8px;padding:14px;
+  border:1px solid var(--border);
+}
+.clv-tier{font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.clv-amount{font-family:var(--sans);font-size:20px;font-weight:600;letter-spacing:-0.5px}
+.clv-change{font-size:10px;margin-top:4px}
+
+/* MODEL INFO */
+.model-badges{display:flex;flex-wrap:wrap;gap:8px}
+.model-badge{
+  padding:6px 12px;border-radius:6px;font-size:11px;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.model-dot{width:5px;height:5px;border-radius:50%}
+
+canvas{max-height:220px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark"><span class="logo-dot"></span>CIP</div>
+    <div class="logo-sub">Customer Intelligence</div>
+  </div>
+
+  <div class="nav-section">Analytics</div>
+  <button class="nav-item active" onclick="switchTab(this,'overview')">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    Overview
+  </button>
+  <button class="nav-item" onclick="switchTab(this,'rfm')">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+    RFM Segments
+  </button>
+  <button class="nav-item" onclick="switchTab(this,'clv')">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 4-6 4 5"/></svg>
+    CLV Forecast
+  </button>
+  <button class="nav-item" onclick="switchTab(this,'propensity')">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Propensity
+  </button>
+
+  <div class="nav-section">System</div>
+  <button class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+    API Config
+  </button>
+
+  <div class="sidebar-bottom">
+    <div class="api-status">
+      <span class="status-dot"></span>
+      FastAPI · Live
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Overview</div>
+      <div class="page-sub" id="page-sub">HDBSCAN · BG/NBD · XGBoost pipeline</div>
+    </div>
+    <div class="topbar-right">
+      <span class="badge badge-green">Model: Active</span>
+      <span class="badge badge-blue">XGBoost v1.2</span>
+      <button class="btn btn-primary">↻ Run Pipeline</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ── OVERVIEW TAB ── -->
+    <div id="tab-overview">
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Total Customers</div>
+          <div class="kpi-value">24,831</div>
+          <div class="kpi-delta delta-up">↑ 4.2% <span style="color:var(--muted)">vs last month</span></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Avg CLV (12-mo)</div>
+          <div class="kpi-value">$482</div>
+          <div class="kpi-delta delta-up">↑ 11.8% <span style="color:var(--muted)">BG/NBD model</span></div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">High-Propensity</div>
+          <div class="kpi-value">6,204</div>
+          <div class="kpi-sub">score ≥ 0.75 · XGBoost</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Model AUC-ROC</div>
+          <div class="kpi-value">0.913</div>
+          <div class="kpi-delta delta-up">↑ 0.021 <span style="color:var(--muted)">vs baseline</span></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">RFM Cluster Distribution</div>
+              <div class="panel-sub">HDBSCAN · 6 segments identified</div>
+            </div>
+          </div>
+          <canvas id="rfmChart"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">CLV Distribution</div>
+              <div class="panel-sub">12-month forecast · BG/NBD</div>
+            </div>
+          </div>
+          <canvas id="clvChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Models in Pipeline</div>
+            <div class="panel-sub">End-to-end analytics stack</div>
+          </div>
+          <a href="https://github.com/A-Narain/Customer-Segmentation-Propensity" target="_blank" class="btn">GitHub ↗</a>
+        </div>
+        <div class="model-badges">
+          <div class="model-badge"><span class="model-dot" style="background:var(--blue)"></span>HDBSCAN · RFM Segmentation</div>
+          <div class="model-badge"><span class="model-dot" style="background:var(--green)"></span>BG/NBD · CLV Forecasting</div>
+          <div class="model-badge"><span class="model-dot" style="background:var(--amber)"></span>XGBoost · Purchase Propensity</div>
+          <div class="model-badge"><span class="model-dot" style="background:var(--purple)"></span>FastAPI · Prediction Endpoint</div>
+          <div class="model-badge"><span class="model-dot" style="background:var(--red)"></span>Streamlit · Segment Explorer</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RFM TAB ── -->
+    <div id="tab-rfm" style="display:none">
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Champions</div>
+          <div class="kpi-value">4,218</div>
+          <div class="kpi-sub">High R · High F · High M</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Loyal Customers</div>
+          <div class="kpi-value">6,112</div>
+          <div class="kpi-sub">Mid R · High F · High M</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">At Risk</div>
+          <div class="kpi-value">3,847</div>
+          <div class="kpi-sub">Low R · High F · Mid M</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div><div class="panel-title">Segment Breakdown</div><div class="panel-sub">HDBSCAN density clustering</div></div>
+          </div>
+          <div class="segments-wrap">
+            <div class="segment-row">
+              <span class="seg-label">Champions</span>
+              <div class="seg-bar-bg"><div class="seg-bar" style="width:70%;background:var(--blue)"></div></div>
+              <span class="seg-count">4,218</span>
+              <span class="seg-pct" style="color:var(--blue)">17%</span>
+            </div>
+            <div class="segment-row">
+              <span class="seg-label">Loyal Customers</span>
+              <div class="seg-bar-bg"><div class="seg-bar" style="width:85%;background:var(--green)"></div></div>
+              <span class="seg-count">6,112</span>
+              <span class="seg-pct" style="color:var(--green)">25%</span>
+            </div>
+            <div class="segment-row">
+              <span class="seg-label">Potential Loyalist</span>
+              <div class="seg-bar-bg"><div class="seg-bar" style="width:55%;background:var(--purple)"></div></div>
+              <span class="seg-count">3,901</span>
+              <span class="seg-pct" style="color:var(--purple)">16%</span>
+            </div>
+            <div class="segment-row">
+              <span class="seg-label">At Risk</span>
+              <div class="seg-bar-bg"><div class="seg-bar" style="width:46%;background:var(--amber)"></div></div>
+              <span class="seg-count">3,847</span>
+              <span class="seg-pct" style="color:var(--amber)">15%</span>
+            </div>
+            <div class="segment-row">
+              <span class="seg-label">Hibernating</span>
+              <div class="seg-bar-bg"><div class="seg-bar" style="width:38%;background:var(--muted)"></div></div>
+              <span class="seg-count">3,211</span>
+              <span class="seg-pct" style="color:var(--muted)">13%</span>
+            </div>
+            <div class="segment-row">
+              <span class="seg-label">Lost</span>
+              <div class="seg-bar-bg"><div class="seg-bar" style="width:28%;background:var(--red)"></div></div>
+              <span class="seg-count">3,543</span>
+              <span class="seg-pct" style="color:var(--red)">14%</span>
+            </div>
+          </div>
+          <div class="seg-tags" style="margin-top:20px">
+            <span class="seg-tag" style="background:var(--blue-dim);color:var(--blue);border-color:#4f8eff30">R: Recency</span>
+            <span class="seg-tag" style="background:var(--green-dim);color:var(--green);border-color:#3ecf8e30">F: Frequency</span>
+            <span class="seg-tag" style="background:var(--purple-dim);color:var(--purple);border-color:#a78bfa30">M: Monetary</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div><div class="panel-title">RFM Score Matrix</div><div class="panel-sub">Avg scores per segment</div></div>
+          </div>
+          <canvas id="rfmRadar"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLV TAB ── -->
+    <div id="tab-clv" style="display:none">
+      <div class="clv-grid">
+        <div class="clv-cell">
+          <div class="clv-tier">Top 10% Customers</div>
+          <div class="clv-amount" style="color:var(--blue)">$2,841</div>
+          <div class="clv-change" style="color:var(--green)">↑ 18.4% YoY</div>
+        </div>
+        <div class="clv-cell">
+          <div class="clv-tier">Mid Tier (10–50%)</div>
+          <div class="clv-amount" style="color:var(--text)">$612</div>
+          <div class="clv-change" style="color:var(--green)">↑ 7.1% YoY</div>
+        </div>
+        <div class="clv-cell">
+          <div class="clv-tier">Bottom 50%</div>
+          <div class="clv-amount" style="color:var(--muted)">$94</div>
+          <div class="clv-change" style="color:var(--amber)">↓ 2.3% YoY</div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="panel">
+          <div class="panel-header">
+            <div><div class="panel-title">12-Month CLV Forecast</div><div class="panel-sub">BG/NBD probabilistic model</div></div>
+          </div>
+          <canvas id="clvForecast"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div><div class="panel-title">Top Customers by CLV</div></div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Customer</th><th>Segment</th><th>CLV</th></tr></thead>
+            <tbody>
+              <tr><td>C-00481</td><td><span class="score-pill score-high">Champion</span></td><td style="color:var(--green)">$4,210</td></tr>
+              <tr><td>C-01293</td><td><span class="score-pill score-high">Champion</span></td><td style="color:var(--green)">$3,872</td></tr>
+              <tr><td>C-00719</td><td><span class="score-pill score-mid">Loyal</span></td><td style="color:var(--green)">$3,441</td></tr>
+              <tr><td>C-02044</td><td><span class="score-pill score-high">Champion</span></td><td style="color:var(--green)">$3,180</td></tr>
+              <tr><td>C-00321</td><td><span class="score-pill score-mid">Loyal</span></td><td style="color:var(--green)">$2,990</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROPENSITY TAB ── -->
+    <div id="tab-propensity" style="display:none">
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Model AUC-ROC</div>
+          <div class="kpi-value">0.913</div>
+          <div class="kpi-sub">XGBoost classifier</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Precision@K</div>
+          <div class="kpi-value">84.2%</div>
+          <div class="kpi-sub">Top 20% targeting</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">High-Risk Churners</div>
+          <div class="kpi-value">1,847</div>
+          <div class="kpi-sub">score ≤ 0.25</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div><div class="panel-title">Feature Importance</div><div class="panel-sub">XGBoost SHAP values</div></div>
+          </div>
+          <canvas id="featureChart"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div><div class="panel-title">Top Propensity Scores</div><div class="panel-sub">Live FastAPI endpoint</div></div>
+          </div>
+          <div class="propensity-list">
+            <div class="prop-row"><span class="prop-id">C-00481</span><div class="prop-bar-bg"><div class="prop-bar" style="width:97%;background:var(--green)"></div></div><span class="prop-score" style="color:var(--green)">0.97</span></div>
+            <div class="prop-row"><span class="prop-id">C-01720</span><div class="prop-bar-bg"><div class="prop-bar" style="width:92%;background:var(--green)"></div></div><span class="prop-score" style="color:var(--green)">0.92</span></div>
+            <div class="prop-row"><span class="prop-id">C-00319</span><div class="prop-bar-bg"><div class="prop-bar" style="width:88%;background:var(--green)"></div></div><span class="prop-score" style="color:var(--green)">0.88</span></div>
+            <div class="prop-row"><span class="prop-id">C-02110</span><div class="prop-bar-bg"><div class="prop-bar" style="width:81%;background:var(--blue)"></div></div><span class="prop-score" style="color:var(--blue)">0.81</span></div>
+            <div class="prop-row"><span class="prop-id">C-00892</span><div class="prop-bar-bg"><div class="prop-bar" style="width:75%;background:var(--blue)"></div></div><span class="prop-score" style="color:var(--blue)">0.75</span></div>
+            <div class="prop-row"><span class="prop-id">C-03021</span><div class="prop-bar-bg"><div class="prop-bar" style="width:61%;background:var(--amber)"></div></div><span class="prop-score" style="color:var(--amber)">0.61</span></div>
+            <div class="prop-row"><span class="prop-id">C-01441</span><div class="prop-bar-bg"><div class="prop-bar" style="width:48%;background:var(--amber)"></div></div><span class="prop-score" style="color:var(--amber)">0.48</span></div>
+            <div class="prop-row"><span class="prop-id">C-00204</span><div class="prop-bar-bg"><div class="prop-bar" style="width:22%;background:var(--red)"></div></div><span class="prop-score" style="color:var(--red)">0.22</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+const CHART_DEFAULTS = {
+  color:'#6b7080',
+  borderColor:'#ffffff0f',
+  font:{family:"'DM Mono',monospace",size:11}
+};
+Chart.defaults.color = CHART_DEFAULTS.color;
+Chart.defaults.borderColor = CHART_DEFAULTS.borderColor;
+Chart.defaults.font = CHART_DEFAULTS.font;
+
+const tabs = {
+  overview:{title:'Overview',sub:'HDBSCAN · BG/NBD · XGBoost pipeline'},
+  rfm:{title:'RFM Segments',sub:'HDBSCAN density clustering · 6 segments'},
+  clv:{title:'CLV Forecast',sub:'BG/NBD probabilistic lifetime value model'},
+  propensity:{title:'Purchase Propensity',sub:'XGBoost classifier · AUC-ROC 0.913'}
+};
+
+function switchTab(el, id) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
+  document.getElementById('tab-'+id).style.display='';
+  document.getElementById('page-title').textContent = tabs[id].title;
+  document.getElementById('page-sub').textContent = tabs[id].sub;
+}
+
+// RFM Donut
+new Chart(document.getElementById('rfmChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Champions','Loyal','Potential','At Risk','Hibernating','Lost'],
+    datasets:[{
+      data:[4218,6112,3901,3847,3211,3543],
+      backgroundColor:['#4f8eff33','#3ecf8e33','#a78bfa33','#f5a62333','#6b708033','#f45b6933'],
+      borderColor:['#4f8eff','#3ecf8e','#a78bfa','#f5a623','#6b7080','#f45b69'],
+      borderWidth:1.5
+    }]
+  },
+  options:{plugins:{legend:{position:'right',labels:{boxWidth:10,padding:12}}},cutout:'65%'}
+});
+
+// CLV histogram
+new Chart(document.getElementById('clvChart'),{
+  type:'bar',
+  data:{
+    labels:['$0-100','$100-200','$200-400','$400-700','$700-1k','$1k+'],
+    datasets:[{
+      data:[6200,5800,4900,3800,2400,1731],
+      backgroundColor:'#4f8eff22',
+      borderColor:'#4f8eff',
+      borderWidth:1,
+      borderRadius:3
+    }]
+  },
+  options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#ffffff08'}}}}
+});
+
+// RFM Radar
+new Chart(document.getElementById('rfmRadar'),{
+  type:'radar',
+  data:{
+    labels:['Recency','Frequency','Monetary','Loyalty','Engagement'],
+    datasets:[
+      {label:'Champions',data:[95,90,92,88,94],borderColor:'#4f8eff',backgroundColor:'#4f8eff15',borderWidth:1.5,pointRadius:3},
+      {label:'At Risk',data:[30,70,65,45,35],borderColor:'#f5a623',backgroundColor:'#f5a62310',borderWidth:1.5,pointRadius:3},
+      {label:'Lost',data:[10,20,25,15,12],borderColor:'#f45b69',backgroundColor:'#f45b6910',borderWidth:1.5,pointRadius:3}
+    ]
+  },
+  options:{plugins:{legend:{labels:{boxWidth:10,padding:12}}},scales:{r:{grid:{color:'#ffffff0f'},angleLines:{color:'#ffffff0f'},ticks:{display:false}}}}
+});
+
+// CLV Forecast line
+new Chart(document.getElementById('clvForecast'),{
+  type:'line',
+  data:{
+    labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    datasets:[{
+      label:'Forecast CLV',
+      data:[380,392,408,421,438,452,461,472,481,489,497,510],
+      borderColor:'#4f8eff',backgroundColor:'#4f8eff15',fill:true,tension:0.4,pointRadius:2,borderWidth:2
+    },{
+      label:'Actual',
+      data:[380,395,410,418,null,null,null,null,null,null,null,null],
+      borderColor:'#3ecf8e',backgroundColor:'transparent',tension:0.4,pointRadius:3,borderWidth:2,borderDash:[]
+    }]
+  },
+  options:{plugins:{legend:{labels:{boxWidth:10,padding:12}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#ffffff08'}}}}
+});
+
+// Feature importance
+new Chart(document.getElementById('featureChart'),{
+  type:'bar',
+  data:{
+    labels:['Days since purchase','Purchase frequency','Avg order value','Category diversity','Session depth','Recency score'],
+    datasets:[{
+      data:[0.31,0.24,0.18,0.12,0.09,0.06],
+      backgroundColor:['#4f8eff33','#4f8eff2a','#4f8eff22','#4f8eff1a','#4f8eff12','#4f8eff0a'],
+      borderColor:'#4f8eff',
+      borderWidth:1,borderRadius:3
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:'#ffffff08'},max:0.35},y:{grid:{display:false}}}
+  }
+});
+</script>
+</body>
+</html>
